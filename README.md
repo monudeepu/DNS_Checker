@@ -21,7 +21,7 @@ The @globalping/cli package does not exist on npm and was never published there,
 1. After the workflow run completes, go to the "Actions" tab in your repository
 2. Click on the completed workflow run
 3. Scroll down to the "Artifacts" section
-4. Download the "agora-gulf-connectivity-report" artifact, which contains the report.md file
+4. Download the "agora-gulf-connectivity-report" artifact, which contains both `report.md` and browser-ready `report.html`
 
 ## What Each Test Means
 

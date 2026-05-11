@@ -32,5 +32,7 @@ jobs:
         if: always()
         with:
           name: agora-gulf-connectivity-report
-          path: report.md
+          path: |
+            report.md
+            report.html
           retention-days: 30
