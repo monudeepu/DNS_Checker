@@ -1,0 +1,34 @@
+name: Agora Gulf Connectivity Check
+
+on:
+  workflow_dispatch:
+
+jobs:
+  connectivity-check:
+    name: Run Globalping diagnostics from Gulf regions
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install Globalping CLI
+        run: npm install -g @globalping/cli
+
+      - name: Make script executable
+        run: chmod +x scripts/check.sh
+
+      - name: Run connectivity checks
+        run: bash scripts/check.sh
+
+      - name: Upload report as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: agora-gulf-connectivity-report
+          path: report.md
+          retention-days: 30
