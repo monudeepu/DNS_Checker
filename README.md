@@ -1,42 +1,49 @@
+# Agora Gulf Connectivity Diagnostic Tool
+
 ## What This Is
 
-This repository contains a small GitHub Actions workflow and shell script that run the free [Globalping](https://globalping.io/) CLI from four Gulf-area probe locations against six domains. Each domain and region pair is exercised with DNS resolution, an HTTPS-oriented HTTP probe, ICMP ping, and traceroute so you can spot DNS, TLS or HTTP reachability, latency, and path issues affecting users around the Gulf without installing probes yourself.
+This repository contains a GitHub Actions workflow that diagnoses connectivity issues for Agora-powered video classes in Gulf-region countries (Saudi Arabia, UAE, Qatar, Kuwait, Bahrain). It runs comprehensive network tests against Agora SDK domains both locally on GitHub's infrastructure and remotely from Gulf-region network probes using Globalping's free probe network, generating a detailed report to identify DNS blocks, firewalls, TLS SNI blocking, or ISP-level deep packet inspection.
+
+## Why Globalping installs via apt, not npm
+
+The @globalping/cli package does not exist on npm and was never published there, despite common assumptions. Globalping must be installed via the official apt repository using the packagecloud.io installation script, which provides the correct binary and dependencies.
 
 ## How to Trigger
 
-1. Open the repository on GitHub.
-2. Select the **Actions** tab.
-3. Choose **Gulf Agora connectivity check** in the workflow list on the left.
-4. Click **Run workflow**, leave inputs empty (there are none), and confirm with **Run workflow**.
+1. Navigate to your GitHub repository
+2. Click on the "Actions" tab
+3. Select the "Agora Gulf Connectivity Check" workflow from the list
+4. Click the "Run workflow" button
+5. The workflow will start executing immediately
 
-## Downloading the Report
+## Where to Download the Report
 
-1. After the run finishes, open the same workflow run from the **Actions** tab.
-2. Scroll to the **Artifacts** section at the bottom of the run summary.
-3. Download **agora-gulf-connectivity-report** (a zip file).
-4. Unzip the archive; it contains `report.md` at the root of the zip.
+1. After the workflow run completes, go to the "Actions" tab in your repository
+2. Click on the completed workflow run
+3. Scroll down to the "Artifacts" section
+4. Download the "agora-gulf-connectivity-report" artifact, which contains the report.md file
 
 ## What Each Test Means
 
-| Test | Command | What It Detects |
-| --- | --- | --- |
-| DNS Lookup | `globalping dns <domain> from <region> --limit 1 --ci` | Whether resolvers used by a probe in that region can resolve the hostname and what answers they return, including failures or unexpected records. |
-| HTTPS Curl | `globalping http <domain> from <region> --limit 1 --method head --ci` | Whether an HTTPS-capable HTTP request from that region completes (TLS, routing, and basic HTTP availability), similar in spirit to `curl -I` against the host. |
-| Ping | `globalping ping <domain> from <region> --limit 1 --ci` | ICMP reachability and round-trip latency from the chosen region toward the target, highlighting packet loss or very high latency. |
-| Traceroute | `globalping traceroute <domain> from <region> --limit 1 --ci` | The forward path and hops from the probe to the destination, useful for seeing where routing stalls or takes an unexpected detour. |
+| Test | Tool | What it detects |
+|------|------|-----------------|
+| Local DNS | dig, nslookup | DNS resolution from GitHub's infrastructure |
+| TLS Check | openssl s_client | TLS certificate validation and SNI support |
+| HTTP Status | curl | HTTP response codes and connection establishment |
+| Port Scan | nmap | Open ports on target domains |
+| Local Ping | ping | ICMP reachability from GitHub |
+| Local Traceroute | traceroute | Network path from GitHub to target |
+| Gulf DNS | globalping dns | DNS resolution from Gulf region probes |
+| Gulf HTTP | globalping http | HTTP connectivity from Gulf region probes |
+| Gulf Ping | globalping ping | ICMP reachability from Gulf region probes |
+| Gulf Traceroute | globalping traceroute | Network path from Gulf region probes |
+| Gulf MTR | globalping mtr | Combined ping and traceroute from Gulf region probes |
 
-## Domains Tested
+## How to Read Failures
 
-- `api.agora.io`
-- `docs.agora.io`
-- `console.agora.io`
-- `agora.io`
-- `google.com`
-- `cloudflare.com`
-
-## Regions Tested
-
-- Bahrain
-- United Arab Emirates
-- Saudi Arabia
-- Qatar
+- DNS NXDOMAIN from Gulf = DNS-level block by ISP
+- Ping timeout from Gulf but DNS resolves = ICMP blocked, not DNS
+- HTTP 403 or TCP timeout from Gulf = firewall or DPI block on HTTPS
+- Traceroute stops mid-path in Gulf = gateway dropping packets
+- TLS failure = SNI-based blocking or certificate issue
+- Local passes, Gulf fails = geo-restriction confirmed

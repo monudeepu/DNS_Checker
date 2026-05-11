@@ -4,27 +4,18 @@ on:
   workflow_dispatch:
 
 jobs:
-  connectivity-check:
-    name: Run full diagnostic from Gulf regions
+  check:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout repository
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Install system networking tools
+      - name: Install native networking tools via apt
         run: |
           sudo apt-get update -qq
-          sudo apt-get install -y -qq \
-            dnsutils \
-            traceroute \
-            mtr-tiny \
-            nmap \
-            netcat-openbsd \
-            curl \
-            openssl
+          sudo apt-get install -y -qq dnsutils traceroute mtr-tiny nmap netcat-openbsd curl openssl
 
-      - name: Install Globalping CLI (correct method — apt, not npm)
+      - name: Install Globalping CLI via apt (NEVER npm)
         run: |
           curl -s https://packagecloud.io/install/repositories/jsdelivr/globalping/script.deb.sh | sudo bash
           sudo apt-get install -y globalping
@@ -33,12 +24,12 @@ jobs:
       - name: Make script executable
         run: chmod +x scripts/check.sh
 
-      - name: Run connectivity checks
+      - name: Run the script
         run: bash scripts/check.sh
 
-      - name: Upload report as artifact
-        if: always()
+      - name: Upload artifact
         uses: actions/upload-artifact@v4
+        if: always()
         with:
           name: agora-gulf-connectivity-report
           path: report.md
