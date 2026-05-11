@@ -5,20 +5,30 @@ on:
 
 jobs:
   connectivity-check:
-    name: Run Globalping diagnostics from Gulf regions
+    name: Run full diagnostic from Gulf regions
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up Node.js 20
-        uses: actions/setup-node@v4
-        with:
-          node-version: "20"
+      - name: Install system networking tools
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq \
+            dnsutils \
+            traceroute \
+            mtr-tiny \
+            nmap \
+            netcat-openbsd \
+            curl \
+            openssl
 
-      - name: Install Globalping CLI
-        run: npm install -g @globalping/cli
+      - name: Install Globalping CLI (correct method — apt, not npm)
+        run: |
+          curl -s https://packagecloud.io/install/repositories/jsdelivr/globalping/script.deb.sh | sudo bash
+          sudo apt-get install -y globalping
+          globalping version
 
       - name: Make script executable
         run: chmod +x scripts/check.sh
@@ -27,6 +37,7 @@ jobs:
         run: bash scripts/check.sh
 
       - name: Upload report as artifact
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: agora-gulf-connectivity-report
